@@ -1,1 +1,121 @@
-{"client":"Thunder Client","collectionName":"bed-covid","dateExported":"2021-07-10T06:02:28.214Z","version":"1.1","folders":[],"requests":[{"containerId":"","sortNum":10000,"headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],"colId":"0baf8be4-faa3-4633-8cfb-a9ec149fd5f5","name":"Check Available Bed","url":"https://bed-covid-id.vercel.app/api/available?province=sulawesi%20selatan","method":"GET","modified":"2021-07-10T06:00:35.053Z","created":"2021-07-10T05:58:34.410Z","_id":"fac878bc-6c32-4d07-8d58-182e711011fd","params":[{"name":"province","value":"sulawesi%20selatan"}],"tests":[]},{"containerId":"","sortNum":20000,"headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],"colId":"0baf8be4-faa3-4633-8cfb-a9ec149fd5f5","name":"Get Hospital Detail","url":"https://bed-covid-id.vercel.app/api/detail?code=7371325","method":"GET","modified":"2021-07-10T06:01:49.871Z","created":"2021-07-10T06:00:51.634Z","_id":"f6ddc226-f6d8-4063-a6ec-d771b8432efe","params":[{"name":"code","value":"7371325"}],"tests":[]}]}
+{
+    "client": "Thunder Client",
+    "collectionName": "bed-covid",
+    "dateExported": "2021-07-17T03:43:32.007Z",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+        {
+            "containerId": "",
+            "sortNum": 10000,
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.io)"
+                }
+            ],
+            "colId": "0baf8be4-faa3-4633-8cfb-a9ec149fd5f5",
+            "name": "Check Available Bed",
+            "url": "https://bed-covid-id.vercel.app//api/available?province=sulawesi selatan",
+            "method": "GET",
+            "modified": "2021-07-17T03:41:59.840Z",
+            "created": "2021-07-10T05:58:34.410Z",
+            "_id": "fac878bc-6c32-4d07-8d58-182e711011fd",
+            "params": [
+                {
+                    "name": "province",
+                    "value": "sulawesi selatan"
+                }
+            ],
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                },
+                {
+                    "type": "res-body",
+                    "custom": "",
+                    "action": "isjson",
+                    "value": "true"
+                },
+                {
+                    "type": "res-time",
+                    "custom": "",
+                    "action": "<=",
+                    "value": "4000"
+                },
+                {
+                    "type": "json-query",
+                    "custom": "json.status",
+                    "action": "equal",
+                    "value": "OK"
+                },
+                {
+                    "type": "json-query",
+                    "custom": "json.message",
+                    "action": "equal",
+                    "value": "Data ditemukan"
+                }
+            ]
+        },
+        {
+            "containerId": "",
+            "sortNum": 20000,
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.io)"
+                }
+            ],
+            "colId": "0baf8be4-faa3-4633-8cfb-a9ec149fd5f5",
+            "name": "Get Hospital Detail",
+            "url": "https://bed-covid-id.vercel.app/api/detail?code=7371325",
+            "method": "GET",
+            "modified": "2021-07-17T03:43:03.694Z",
+            "created": "2021-07-10T06:00:51.634Z",
+            "_id": "f6ddc226-f6d8-4063-a6ec-d771b8432efe",
+            "params": [
+                {
+                    "name": "code",
+                    "value": "7371325"
+                }
+            ],
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                },
+                {
+                    "type": "res-body",
+                    "custom": "",
+                    "action": "isjson",
+                    "value": "true"
+                },
+                {
+                    "type": "res-time",
+                    "custom": "",
+                    "action": "<=",
+                    "value": "3500"
+                },
+                {
+                    "type": "json-query",
+                    "custom": "json.status",
+                    "action": "equal",
+                    "value": "OK"
+                }
+            ]
+        }
+    ]
+}
