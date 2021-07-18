@@ -1,15 +1,12 @@
-## Available Endpoint
-
-  -  Check Available
-     
+## Available Endpoint  
+  -  Check Available  
      Get data bed available for each hospital in specific location
      - endpoint: BASEURL/api/available
 	 - parameter:
 	   - province [string]: province name
 	 - example: `BASEURL/api/available?province=aceh`
 
-  -  Detail Hospital
-  
+  -  Detail Hospital  
      Get data detail bed available for each room types in specific hospital
 	 -  endpoint: BASEURL/api/detail
 	 -  parameter:
