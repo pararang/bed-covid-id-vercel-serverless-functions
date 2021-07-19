@@ -1,5 +1,7 @@
 # API Hospital Bed Availability for COVID-19 Patient In Indonesia
 
+[![Lines Of Code](https://tokei.rs/b1/github/pararang/bed-covid-id-vercel-serverless-functions?category=code)](https://github.com/pararang/bed-covid-id-vercel-serverless-functions)
+
 ## Data Source
 
 The data are scrapped (on the fly per API http request) from MoH's official website named [SIRANAP V 3.0](https://yankes.kemkes.go.id/app/siranap/).
