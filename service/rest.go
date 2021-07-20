@@ -5,7 +5,13 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 )
+
+type Option struct {
+	ID    int    `json:"id"`
+	Label string `json:"label"`
+}
 
 type MapStringInt map[string]int
 
@@ -16,6 +22,20 @@ func (m MapStringInt) GetKeys() []string {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+// GetListForOptions returns a list of objects from a map.
+func (m MapStringInt) GetListForOptions() []Option {
+	var list = make([]Option, 0)
+	for k, v := range m {
+		list = append(list, Option{ID: v, Label: k})
+	}
+
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Label < list[j].Label
+	})
+
+	return list
 }
 
 var MapProvinceID = MapStringInt{
