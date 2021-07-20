@@ -8,13 +8,18 @@ The data are scrapped (on the fly per API http request) from MoH's official webs
 
 ## Available Endpoint  
 
+- List Provinces  
+     Get list of province's name  
+  - endpoint: BASEURL/api/province
+  - parameter: `none`
+  - example: `BASEURL/api/province`
+
 - Check Available  
-     Get data bed available for each hospital in specific location
+     Get data bed available for each hospital in specific location, for now only support filter by province
   - endpoint: BASEURL/api/available
   - parameter:
     - province `[string]`: province name
-  - example: `BASEURL/api/available?province=aceh`
-
+  - example: `BASEURL/api/available?province=aceh`  
 - Detail Hospital  
      Get data detail bed available for each room types in specific hospital
   - endpoint: BASEURL/api/detail

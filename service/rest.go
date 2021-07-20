@@ -7,7 +7,18 @@ import (
 	"net/http"
 )
 
-var MapProvinceID = map[string]int{
+type MapStringInt map[string]int
+
+// GetKeys returns the keys of a map as a string array.
+func (m MapStringInt) GetKeys() []string {
+	var keys = make([]string, 0)
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+var MapProvinceID = MapStringInt{
 	"ACEH":                      11,
 	"SUMATERA UTARA":            12,
 	"SUMATERA BARAT":            13,
