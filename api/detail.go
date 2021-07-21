@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// DetailHospitalHandler ...
 func DetailHospitalHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

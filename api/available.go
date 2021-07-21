@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// AvailableHandler ...
 func AvailableHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

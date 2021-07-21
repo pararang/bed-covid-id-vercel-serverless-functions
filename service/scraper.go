@@ -11,6 +11,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// HospitalSummary is a summary of a hospital
 type HospitalSummary struct {
 	Code         string `json:"code"`
 	Name         string `json:"name"`
@@ -23,6 +24,7 @@ type HospitalSummary struct {
 	LastUpdate   string `json:"lastUpdate"`
 }
 
+// HospitalDetail is a detail of a hospital
 type HospitalDetail struct {
 	Name    string `json:"name"`
 	Address string `json:"address"`
@@ -30,10 +32,12 @@ type HospitalDetail struct {
 	Room    []Room `json:"rooms"`
 }
 
+// IsEmpty ...
 func (hd *HospitalDetail) IsEmpty() bool {
 	return hd.Name == "" && hd.Address == "" && hd.Hotline == "" && len(hd.Room) == 0 //TODO: create proper way to check empty
 }
 
+// Room is a room of a hospital
 type Room struct {
 	Name       string `json:"name"`
 	Capacity   int    `json:"capacity"`
@@ -83,6 +87,7 @@ func getHospitalCode(siranapHospitalURL string) (code string, err error) {
 	return hospitalCodeParam[0], nil
 }
 
+// ScrapeProvince ...
 func ScrapeProvince(provinceID int) (data []HospitalSummary, err error) {
 
 	domHTML, err := readPage(fmt.Sprintf("http://yankes.kemkes.go.id/app/siranap/rumah_sakit?jenis=1&propinsi=%dprop&kabkota", provinceID))
@@ -151,6 +156,7 @@ func ScrapeProvince(provinceID int) (data []HospitalSummary, err error) {
 	return data, nil
 }
 
+// ScrapeHospital ...
 func ScrapeHospital(hospitalCode string) (data HospitalDetail, err error) {
 
 	var getHospitalName = func(titleText, address, hotline string) string {

@@ -8,11 +8,13 @@ import (
 	"sort"
 )
 
+// Option ...
 type Option struct {
 	ID    int    `json:"id"`
 	Label string `json:"label"`
 }
 
+// MapStringInt ...
 type MapStringInt map[string]int
 
 // GetKeys returns the keys of a map as a string array.
@@ -38,6 +40,7 @@ func (m MapStringInt) GetListForOptions() []Option {
 	return list
 }
 
+// MapProvinceID ...
 var MapProvinceID = MapStringInt{
 	"ACEH":                      11,
 	"SUMATERA UTARA":            12,
@@ -75,12 +78,15 @@ var MapProvinceID = MapStringInt{
 	"PAPUA":                     94,
 }
 
+// Response ...
 type Response struct {
 	Status  string      `json:"status"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
 
+// EncodeResponse ...
+// TODO: use JSONIndent
 func EncodeResponse(response Response) *bytes.Buffer {
 	buf := new(bytes.Buffer)
 	enc := json.NewEncoder(buf)
@@ -91,6 +97,7 @@ func EncodeResponse(response Response) *bytes.Buffer {
 	return buf
 }
 
+// JSONResponseSuccess ...
 func JSONResponseSuccess(w http.ResponseWriter, message string, data interface{}) {
 
 	if data == nil {
@@ -107,6 +114,7 @@ func JSONResponseSuccess(w http.ResponseWriter, message string, data interface{}
 	w.Write(EncodeResponse(response).Bytes())
 }
 
+// JSONResponseFail ...
 func JSONResponseFail(w http.ResponseWriter, message string) {
 
 	log.Printf("ERROR: %s", message)

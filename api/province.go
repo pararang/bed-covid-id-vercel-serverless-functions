@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// ListProvinceHandler ...
 func ListProvinceHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

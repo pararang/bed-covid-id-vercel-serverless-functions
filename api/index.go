@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
+// Handler ...
 func Handler(w http.ResponseWriter, r *http.Request) {
 	var text = `
 	Endpoint list:
