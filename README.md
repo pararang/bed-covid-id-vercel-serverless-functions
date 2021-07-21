@@ -1,6 +1,7 @@
 # API Hospital Bed Availability for COVID-19 Patient In Indonesia
 
 [![Lines Of Code](https://tokei.rs/b1/github/pararang/bed-covid-id-vercel-serverless-functions?category=code)](https://github.com/pararang/bed-covid-id-vercel-serverless-functions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pararang/bed-covid-id-vercel-serverless-functions)](https://goreportcard.com/report/github.com/pararang/bed-covid-id-vercel-serverless-functions)
 
 ## Data Source
 
