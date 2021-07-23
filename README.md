@@ -31,3 +31,7 @@ The data are scrapped (on the fly per API http request) from MoH's official webs
 ## Infra
 
  Deployed using Vercel Serverless Function that integrated with DataDog for storing log.
+ 
+ ## LICENSE
+
+[MIT](LICENSE)
