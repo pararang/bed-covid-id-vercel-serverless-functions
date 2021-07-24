@@ -1,8 +1,8 @@
-package service
+package rest
 
 import (
+	"api-bed-covid/utils"
 	"bytes"
-	"encoding/json"
 	"log"
 	"net/http"
 	"sort"
@@ -85,20 +85,12 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-// EncodeResponse ...
-// TODO: use JSONIndent
 func EncodeResponse(response Response) *bytes.Buffer {
-	buf := new(bytes.Buffer)
-	enc := json.NewEncoder(buf)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "  ")
-	_ = enc.Encode(response)
-
-	return buf
+	return utils.JSONIndentFormatter(response)
 }
 
-// JSONResponseSuccess ...
-func JSONResponseSuccess(w http.ResponseWriter, message string, data interface{}) {
+// ResponseSuccessWriter ...
+func ResponseSuccessWriter(w http.ResponseWriter, message string, data interface{}) {
 
 	if data == nil {
 		log.Println("INFO: response with empty data")
@@ -114,8 +106,8 @@ func JSONResponseSuccess(w http.ResponseWriter, message string, data interface{}
 	w.Write(EncodeResponse(response).Bytes())
 }
 
-// JSONResponseFail ...
-func JSONResponseFail(w http.ResponseWriter, message string) {
+// ResponseFailWriter ...
+func ResponseFailWriter(w http.ResponseWriter, message string) {
 
 	log.Printf("ERROR: %s", message)
 

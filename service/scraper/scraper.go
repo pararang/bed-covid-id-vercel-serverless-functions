@@ -1,102 +1,53 @@
-package service
+package scraper
 
 import (
+	"api-bed-covid/model"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/nedpals/supabase-go"
 )
 
-// HospitalSummary is a summary of a hospital
-type HospitalSummary struct {
-	Code         string `json:"code"`
-	Name         string `json:"name"`
-	Address      string `json:"address"`
-	DetailURL    string `json:"detailURL"`
-	BedAvailable int    `json:"bedAvailable"`
-	PatientQueue int    `json:"patientQueue"`
-	Hotline      string `json:"hotline"`
-	Note         string `json:"note"`
-	LastUpdate   string `json:"lastUpdate"`
+type Scraper interface {
+	GetProvinceAvailability(provinceID int) ([]model.HospitalSummary, error)
+	GetHospitalDetail(hospitalCode string) (model.HospitalDetail, error)
+	readPage(url string) (*goquery.Document, error)
+	getHospitalCodeFromDetailURL(detailURL string) (string, error)
 }
 
-// HospitalDetail is a detail of a hospital
-type HospitalDetail struct {
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	Hotline string `json:"hotline"`
-	Room    []Room `json:"rooms"`
+type scraper struct {
+	cacheClient *supabase.Client
+	cacheDB     *string
 }
 
-// IsEmpty ...
-func (hd *HospitalDetail) IsEmpty() bool {
-	return hd.Name == "" && hd.Address == "" && hd.Hotline == "" && len(hd.Room) == 0 //TODO: create proper way to check empty
+func New() scraper {
+
+	supabaseUrl := os.Getenv("SUPABASE_URL")
+	supabaseKey := os.Getenv("SUPABASE_KEY")
+	supabaseDB := os.Getenv("SUPABASE_DB")
+
+	return scraper{
+		cacheClient: supabase.CreateClient(supabaseUrl, supabaseKey),
+		cacheDB:     &supabaseDB,
+	}
 }
 
-// Room is a room of a hospital
-type Room struct {
-	Name       string `json:"name"`
-	Capacity   int    `json:"capacity"`
-	Empty      int    `json:"empty"`
-	Queue      int    `json:"queue"`
-	LastUpdate string `json:"lastUpdate"`
-}
+func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSummary, error) {
+	var data = make([]model.HospitalSummary, 0)
 
-func readPage(url string) (goQueryDoc *goquery.Document, err error) {
-	log.Printf("INFO: Read page %s", url)
-
-	response, err := http.Get(url)
-	if err != nil {
-		return goQueryDoc, err
-	}
-
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		return goQueryDoc, fmt.Errorf("HTTP error: %d %s", response.StatusCode, response.Status)
-
-	}
-
-	return goquery.NewDocumentFromReader(response.Body)
-}
-
-func getHospitalCode(siranapHospitalURL string) (code string, err error) {
-	u, err := url.Parse(siranapHospitalURL)
-	if err != nil {
-		return code, err
-	}
-
-	m, err := url.ParseQuery(u.RawQuery)
-	if err != nil {
-		return code, err
-	}
-
-	hospitalCodeParam, ok := m["kode_rs"]
-	if !ok {
-		return code, fmt.Errorf("not found query param kode_rs")
-	}
-
-	if len(hospitalCodeParam) == 0 {
-		return code, fmt.Errorf("query param kode_rs is empty")
-	}
-
-	return hospitalCodeParam[0], nil
-}
-
-// ScrapeProvince ...
-func ScrapeProvince(provinceID int) (data []HospitalSummary, err error) {
-
-	domHTML, err := readPage(fmt.Sprintf("http://yankes.kemkes.go.id/app/siranap/rumah_sakit?jenis=1&propinsi=%dprop&kabkota", provinceID))
+	domHTML, err := s.readPage(fmt.Sprintf("http://yankes.kemkes.go.id/app/siranap/rumah_sakit?jenis=1&propinsi=%dprop&kabkota", provinceID))
 	if err != nil {
 		return data, err
 	}
 
 	domHTML.Find(".cardRS").Each(func(i int, sel *goquery.Selection) {
-		var hospital = new(HospitalSummary)
+		var hospital = new(model.HospitalSummary)
 
 		hospital.Name = sel.Find("h5").Text()
 
@@ -105,7 +56,7 @@ func ScrapeProvince(provinceID int) (data []HospitalSummary, err error) {
 			log.Println("INFO: not found selector siranap hospital detail URL")
 		}
 
-		hospital.Code, err = getHospitalCode(siranapHospitalURL)
+		hospital.Code, err = s.getHospitalCodeFromDetailURL(siranapHospitalURL)
 		if err != nil {
 			log.Printf("INFO: failed get hospital code, err: %s", err.Error())
 		}
@@ -156,18 +107,18 @@ func ScrapeProvince(provinceID int) (data []HospitalSummary, err error) {
 	return data, nil
 }
 
-// ScrapeHospital ...
-func ScrapeHospital(hospitalCode string) (data HospitalDetail, err error) {
-
+func (s *scraper) GetHospitalDetail(hospitalCode string) (model.HospitalDetail, error) {
 	var getHospitalName = func(titleText, address, hotline string) string {
 		titleText = strings.Replace(titleText, address, "", 1)
 		titleText = strings.Replace(titleText, hotline, "", 1)
 		return titleText
 	}
 
+	var data model.HospitalDetail
+
 	provinceID := hospitalCode[0:2]
 
-	domHTML, err := readPage(fmt.Sprintf("https://yankes.kemkes.go.id/app/siranap/tempat_tidur?kode_rs=%s&jenis=1&propinsi=%sprop&kabkota=", hospitalCode, provinceID))
+	domHTML, err := s.readPage(fmt.Sprintf("https://yankes.kemkes.go.id/app/siranap/tempat_tidur?kode_rs=%s&jenis=1&propinsi=%sprop&kabkota=", hospitalCode, provinceID))
 	if err != nil {
 		return data, err
 	}
@@ -178,9 +129,9 @@ func ScrapeHospital(hospitalCode string) (data HospitalDetail, err error) {
 	data.Hotline = strings.TrimSpace(titleSelector.Find("i").First().Text())
 	data.Name = strings.TrimSpace(getHospitalName(titleSelector.Text(), data.Address, data.Hotline))
 
-	var rooms []Room
+	var rooms = make([]model.Room, 0)
 	domHTML.Find(".card").Each(func(i int, card *goquery.Selection) {
-		var room = new(Room)
+		var room = new(model.Room)
 
 		description := strings.Split(card.Find("p[class=mb-0]").Text(), "Update")
 		if len(description) == 2 {
@@ -220,4 +171,45 @@ func ScrapeHospital(hospitalCode string) (data HospitalDetail, err error) {
 	data.Room = rooms
 
 	return data, nil
+}
+
+func (s *scraper) readPage(url string) (goQueryDoc *goquery.Document, err error) {
+	log.Printf("INFO: Read page %s", url)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return goQueryDoc, err
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return goQueryDoc, fmt.Errorf("HTTP error: %d %s", response.StatusCode, response.Status)
+
+	}
+
+	return goquery.NewDocumentFromReader(response.Body)
+}
+
+func (s *scraper) getHospitalCodeFromDetailURL(detailURL string) (code string, err error) {
+	u, err := url.Parse(detailURL)
+	if err != nil {
+		return code, err
+	}
+
+	m, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return code, err
+	}
+
+	hospitalCodeParam, ok := m["kode_rs"]
+	if !ok {
+		return code, fmt.Errorf("not found query param kode_rs")
+	}
+
+	if len(hospitalCodeParam) == 0 {
+		return code, fmt.Errorf("query param kode_rs is empty")
+	}
+
+	return hospitalCodeParam[0], nil
 }

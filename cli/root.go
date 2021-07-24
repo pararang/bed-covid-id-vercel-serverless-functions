@@ -19,6 +19,8 @@ func main() {
 	rootCmd.AddCommand(
 		commands.ListProvinces(),
 		commands.CheckSupabase(),
+		commands.GetAvailablityInProvince(),
+		commands.GetHospitalDetail(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {

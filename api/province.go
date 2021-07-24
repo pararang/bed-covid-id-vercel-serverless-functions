@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"api-bed-covid/service"
+	"api-bed-covid/service/rest"
 	"log"
 	"net/http"
 )
@@ -12,5 +12,5 @@ func ListProvinceHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("INFO: get list of provinces")
 
-	service.JSONResponseSuccess(w, "Data ditemukan", service.MapProvinceID.GetKeys())
+	rest.ResponseSuccessWriter(w, "Data ditemukan", rest.MapProvinceID.GetKeys())
 }

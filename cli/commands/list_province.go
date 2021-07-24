@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"api-bed-covid/cli/utils"
-	"api-bed-covid/service"
+	"api-bed-covid/service/rest"
+	"api-bed-covid/utils"
 	"fmt"
 	"log"
 
@@ -23,15 +23,15 @@ func ListProvinces() *cobra.Command {
 
 func getListProvince(args []string) error {
 	log.Println(args)
-	provinces := service.MapProvinceID
+	provinces := rest.MapProvinceID
 
 	if args[0] == "object" {
-		fmt.Println(utils.JSONIndent(provinces.GetListForOptions()).String())
+		fmt.Println(utils.JSONIndentFormatter(provinces.GetListForOptions()).String())
 		return nil
 	}
 
 	if args[0] == "name" {
-		fmt.Println(utils.JSONIndent(provinces.GetKeys()).String())
+		fmt.Println(utils.JSONIndentFormatter(provinces.GetKeys()).String())
 		return nil
 	}
 

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 )
 
-// JSONIndent ...
-func JSONIndent(input interface{}) *bytes.Buffer {
+// JSONIndentFormatter ...
+func JSONIndentFormatter(input interface{}) *bytes.Buffer {
 	buf := new(bytes.Buffer)
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
