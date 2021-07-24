@@ -18,6 +18,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		commands.ListProvinces(),
+		commands.CheckSupabase(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
