@@ -32,6 +32,11 @@ func AvailableHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(hospitals) == 0 {
+		rest.ResponseSuccessWriter(w, "Data tidak ditemukan", hospitals)
+		return
+	}
+
 	sort.Slice(hospitals, func(i, j int) bool {
 		return hospitals[i].BedAvailable > hospitals[j].BedAvailable
 	})
