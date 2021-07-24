@@ -3,6 +3,8 @@ package rest
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMapStringInt_GetKeys(t *testing.T) {
@@ -29,7 +31,7 @@ func TestMapStringInt_GetKeys(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.m.GetKeys(); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.m.GetKeys(); !assert.ElementsMatch(t, tt.m.GetKeys(), tt.want) {
 				t.Errorf("MapStringInt.GetKeys() = %#v, want %#v", got, tt.want)
 			}
 		})
