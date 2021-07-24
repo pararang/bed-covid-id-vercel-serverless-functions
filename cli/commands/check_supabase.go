@@ -31,6 +31,7 @@ func checkSupabase() error {
 	defer supabaseClient.HTTPClient.CloseIdleConnections()
 
 	var results map[string]interface{}
+
 	err := supabaseClient.DB.From(supabaseDB).Select("*").Single().Filter("url", "eq", urlTest).Execute(&results)
 	if err != nil {
 		fmt.Println(err.Error())

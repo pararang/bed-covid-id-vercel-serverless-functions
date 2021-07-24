@@ -1,7 +1,8 @@
 package handler
 
 import (
-	"api-bed-covid/service"
+	"api-bed-covid/service/rest"
+	"api-bed-covid/service/scraper"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,15 +18,17 @@ func AvailableHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("INFO: scraping for province %s", provinceName)
 
-	provinceID, ok := service.MapProvinceID[provinceName]
+	provinceID, ok := rest.MapProvinceID[provinceName]
 	if !ok {
-		service.JSONResponseFail(w, fmt.Sprintf("unknown province %s", provinceName))
+		rest.ResponseFailWriter(w, fmt.Sprintf("unknown province %s", provinceName))
 		return
 	}
 
-	hospitals, err := service.ScrapeProvince(provinceID)
+	scraperServices := scraper.New()
+
+	hospitals, err := scraperServices.GetProvinceAvailability(provinceID)
 	if err != nil {
-		service.JSONResponseFail(w, err.Error())
+		rest.ResponseFailWriter(w, err.Error())
 		return
 	}
 
@@ -33,5 +36,5 @@ func AvailableHandler(w http.ResponseWriter, r *http.Request) {
 		return hospitals[i].BedAvailable > hospitals[j].BedAvailable
 	})
 
-	service.JSONResponseSuccess(w, "Data ditemukan", hospitals)
+	rest.ResponseSuccessWriter(w, "Data ditemukan", hospitals)
 }

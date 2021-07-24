@@ -1,7 +1,8 @@
 package handler
 
 import (
-	"api-bed-covid/service"
+	"api-bed-covid/service/rest"
+	"api-bed-covid/service/scraper"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,20 +18,22 @@ func DetailHospitalHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("INFO: scraping for hospital %s", hospitalCode)
 
 	if len(hospitalCode) < 2 {
-		service.JSONResponseFail(w, fmt.Sprintf("invalid hospital code: %s", hospitalCode))
+		rest.ResponseFailWriter(w, fmt.Sprintf("invalid hospital code: %s", hospitalCode))
 		return
 	}
 
-	detail, err := service.ScrapeHospital(hospitalCode)
+	scraperServices := scraper.New()
+
+	detail, err := scraperServices.GetHospitalDetail(hospitalCode)
 	if err != nil {
-		service.JSONResponseFail(w, err.Error())
+		rest.ResponseFailWriter(w, err.Error())
 		return
 	}
 
 	if detail.IsEmpty() {
-		service.JSONResponseSuccess(w, "Data tidak ditemukan", nil)
+		rest.ResponseSuccessWriter(w, "Data tidak ditemukan", nil)
 		return
 	}
 
-	service.JSONResponseSuccess(w, "Data ditemukan", detail)
+	rest.ResponseSuccessWriter(w, "Data ditemukan", detail)
 }

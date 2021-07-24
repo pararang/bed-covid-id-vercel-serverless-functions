@@ -1,13 +1,16 @@
-package service
+package scraper
 
-import "testing"
+import (
+	"api-bed-covid/model"
+	"testing"
+)
 
 func TestHospitalDetail_IsEmpty(t *testing.T) {
 	type fields struct {
 		Name    string
 		Address string
 		Hotline string
-		Room    []Room
+		Room    []model.Room
 	}
 	tests := []struct {
 		name   string
@@ -33,7 +36,7 @@ func TestHospitalDetail_IsEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hd := &HospitalDetail{
+			hd := &model.HospitalDetail{
 				Name:    tt.fields.Name,
 				Address: tt.fields.Address,
 				Hotline: tt.fields.Hotline,
