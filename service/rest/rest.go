@@ -75,7 +75,7 @@ var MapProvinceID = MapStringInt{
 	"MALUKU":                    81,
 	"MALUKU UTARA":              82,
 	"PAPUA BARAT":               91,
-	"PAPUA":                     94,
+	"PAPUA":                     92,
 }
 
 // Response ...
