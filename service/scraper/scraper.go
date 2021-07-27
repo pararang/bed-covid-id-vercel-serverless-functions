@@ -2,6 +2,8 @@ package scraper
 
 import (
 	"api-bed-covid/model"
+	"api-bed-covid/storage"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,6 +22,8 @@ type Scraper interface {
 	readPage(url string) (*goquery.Document, error)
 	getHospitalCodeFromDetailURL(detailURL string) (string, error)
 }
+
+var redis = storage.NewRedis()
 
 type scraper struct {
 	cacheClient *supabase.Client
@@ -40,10 +44,20 @@ func New() scraper {
 
 func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSummary, error) {
 	var data = make([]model.HospitalSummary, 0)
+	var url = fmt.Sprintf("http://yankes.kemkes.go.id/app/siranap/rumah_sakit?jenis=1&propinsi=%dprop&kabkota", provinceID)
 
-	domHTML, err := s.readPage(fmt.Sprintf("http://yankes.kemkes.go.id/app/siranap/rumah_sakit?jenis=1&propinsi=%dprop&kabkota", provinceID))
+	domHTML, err := s.readPage(url)
 	if err != nil {
 		return data, err
+	}
+
+	cachedData, _ := redis.GetScrapedAvailableHospitals(url)
+	if len(cachedData) > 0 {
+		err := json.Unmarshal([]byte(cachedData), &data)
+		if err == nil {
+			log.Printf("INFO: Return data from cached data")
+			return data, err
+		}
 	}
 
 	domHTML.Find(".cardRS").Each(func(i int, sel *goquery.Selection) {
@@ -103,6 +117,11 @@ func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSumma
 
 		data = append(data, *hospital)
 	})
+
+	err = redis.SetScrapedAvailableHospitals(url, data)
+	if err != nil {
+		log.Println("ERROR: Error set to redis")
+	}
 
 	return data, nil
 }
