@@ -14,8 +14,12 @@ import (
 type Redis interface {
 	Get(key string) (string, error)
 	Set(key string, value string) error
+	SetEx(key string, value string) error
+
 	SetScrapedAvailableHospitals(hashURL, hashHTML string, hospitals []model.HospitalSummary) error
 	GetScrapedAvailableHospitals(key string) (string, error)
+	SetScrapedDetailHospital(hashURL, hashHTML string, hospital model.HospitalDetail) error
+	GetScrapedDetailHospital(key string) (string, error)
 }
 
 type redis struct {
@@ -70,5 +74,25 @@ func (r redis) GetScrapedAvailableHospitals(url string) (string, error) {
 // buildKeyAvailableHospital returns the key for the scraped available hospitals
 func buildKeyAvailableHospital(url string) string {
 	const prefix = "available_hospitals"
+	return prefix + "." + utils.GetMD5String(url)
+}
+
+// SetScrapedAvailableHospitals sets the scraped available hospitals
+func (r redis) SetScrapedDetailHospital(url string, hospitals model.HospitalDetail) error {
+	var key = buildKeyDetailHospital(url)
+	var value = utils.JSONString(hospitals)
+	var expireTime = time.Duration(5 * 60 * time.Second) // TODO: set to env var
+
+	return r.SetEx(key, value, expireTime)
+}
+
+// GetScrapedAvailableHospitals sets the scraped available hospitals
+func (r redis) GetScrapedDetailHospital(url string) (string, error) {
+	return r.Get(buildKeyDetailHospital(url))
+}
+
+// buildKeyAvailableHospital returns the key for the scraped available hospitals
+func buildKeyDetailHospital(url string) string {
+	const prefix = "detail_hospital"
 	return prefix + "." + utils.GetMD5String(url)
 }

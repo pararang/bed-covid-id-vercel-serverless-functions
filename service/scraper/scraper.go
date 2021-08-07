@@ -118,10 +118,12 @@ func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSumma
 		data = append(data, *hospital)
 	})
 
-	err = redis.SetScrapedAvailableHospitals(url, data)
-	if err != nil {
-		log.Println("ERROR: Error set to redis")
-	}
+	go func() {
+		err = redis.SetScrapedAvailableHospitals(url, data)
+		if err != nil {
+			log.Println("ERROR: Error set to redis")
+		}
+	}()
 
 	return data, nil
 }
@@ -134,12 +136,21 @@ func (s *scraper) GetHospitalDetail(hospitalCode string) (model.HospitalDetail, 
 	}
 
 	var data model.HospitalDetail
+	var provinceID = hospitalCode[0:2]
+	var url = fmt.Sprintf("https://yankes.kemkes.go.id/app/siranap/tempat_tidur?kode_rs=%s&jenis=1&propinsi=%sprop&kabkota=", hospitalCode, provinceID)
 
-	provinceID := hospitalCode[0:2]
-
-	domHTML, err := s.readPage(fmt.Sprintf("https://yankes.kemkes.go.id/app/siranap/tempat_tidur?kode_rs=%s&jenis=1&propinsi=%sprop&kabkota=", hospitalCode, provinceID))
+	domHTML, err := s.readPage(url)
 	if err != nil {
 		return data, err
+	}
+
+	cachedData, _ := redis.GetScrapedDetailHospital(url)
+	if len(cachedData) > 0 {
+		err := json.Unmarshal([]byte(cachedData), &data)
+		if err == nil {
+			log.Printf("INFO: Return data from cached data")
+			return data, err
+		}
 	}
 
 	titleSelector := domHTML.Find("p[class=mb-0]").First()
@@ -188,6 +199,13 @@ func (s *scraper) GetHospitalDetail(hospitalCode string) (model.HospitalDetail, 
 	})
 
 	data.Room = rooms
+
+	go func() {
+		err = redis.SetScrapedDetailHospital(url, data)
+		if err != nil {
+			log.Println("ERROR: Error set to redis")
+		}
+	}()
 
 	return data, nil
 }
