@@ -6,11 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/nedpals/supabase-go"
@@ -21,14 +24,15 @@ type Scraper interface {
 	GetHospitalDetail(hospitalCode string) (model.HospitalDetail, error)
 	readPage(url string) (*goquery.Document, error)
 	getHospitalCodeFromDetailURL(detailURL string) (string, error)
+	getHospitalSummary(selector *goquery.Selection, result *[]model.HospitalSummary) error
 }
-
-var redis = storage.NewRedis()
 
 type scraper struct {
 	cacheClient *supabase.Client
 	cacheDB     *string
 }
+
+var redis = storage.NewRedis()
 
 func New() scraper {
 
@@ -40,6 +44,68 @@ func New() scraper {
 		cacheClient: supabase.CreateClient(supabaseUrl, supabaseKey),
 		cacheDB:     &supabaseDB,
 	}
+}
+
+// scanHospitalSummaryFromCardSelector get hospital summary for data available bed
+func (s *scraper) scanHospitalSummaryFromCardSelector(hospitals *[]model.HospitalSummary, card *goquery.Selection, wg *sync.WaitGroup) {
+	var err error
+	var hospital = new(model.HospitalSummary)
+
+	defer wg.Done()
+
+	hospital.Name = card.Find("h5").Text()
+
+	siranapHospitalURL, exist := card.Find("a[href]").Attr("href")
+	if !exist {
+		log.Println("INFO: not found selector siranap hospital detail URL")
+	}
+
+	hospital.Code, err = s.getHospitalCodeFromDetailURL(siranapHospitalURL)
+	if err != nil {
+		log.Printf("INFO: failed get hospital code, err: %s", err.Error())
+	}
+
+	hospital.DetailURL = siranapHospitalURL
+
+	card.Find("p").Each(func(i int, subSel *goquery.Selection) {
+		text := strings.TrimSpace(subSel.Text())
+
+		if i == 0 {
+			hospital.Address = text
+		}
+
+		if i == 2 && text != "Bed IGD Penuh!" {
+			bedAvailText := subSel.Find("b").Text()
+			if bedAvailText != "" {
+				hospital.BedAvailable, _ = strconv.Atoi(bedAvailText)
+			}
+		}
+
+		if i == 3 && strings.HasPrefix(text, "dengan antrian") {
+			inLineElements := strings.Split(text, " ")
+			if len(inLineElements) == 4 {
+				hospital.PatientQueue, _ = strconv.Atoi(inLineElements[2])
+			}
+		}
+
+		if i == 4 {
+			hospital.LastUpdate = strings.Replace(text, "diupdate ", "", 1)
+		}
+
+		if i == 5 {
+			hospital.Note = text
+		}
+
+	})
+
+	card.Find(".card-footer").Each(func(i int, footerSel *goquery.Selection) {
+		hotline := footerSel.Find("span").Text()
+		if hotline != "hotline tidak tersedia" {
+			hospital.Hotline = hotline
+		}
+	})
+
+	*hospitals = append(*hospitals, *hospital)
 }
 
 func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSummary, error) {
@@ -60,69 +126,26 @@ func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSumma
 		}
 	}
 
+	var wg sync.WaitGroup
+
 	domHTML.Find(".cardRS").Each(func(i int, sel *goquery.Selection) {
-		var hospital = new(model.HospitalSummary)
-
-		hospital.Name = sel.Find("h5").Text()
-
-		siranapHospitalURL, exist := sel.Find("a[href]").Attr("href")
-		if !exist {
-			log.Println("INFO: not found selector siranap hospital detail URL")
-		}
-
-		hospital.Code, err = s.getHospitalCodeFromDetailURL(siranapHospitalURL)
-		if err != nil {
-			log.Printf("INFO: failed get hospital code, err: %s", err.Error())
-		}
-
-		hospital.DetailURL = siranapHospitalURL
-
-		sel.Find("p").Each(func(i int, subSel *goquery.Selection) {
-			text := strings.TrimSpace(subSel.Text())
-
-			if i == 0 {
-				hospital.Address = text
-			}
-
-			if i == 2 && text != "Bed IGD Penuh!" {
-				bedAvailText := subSel.Find("b").Text()
-				if bedAvailText != "" {
-					hospital.BedAvailable, _ = strconv.Atoi(bedAvailText)
-				}
-			}
-
-			if i == 3 && strings.HasPrefix(text, "dengan antrian") {
-				inLineElements := strings.Split(text, " ")
-				if len(inLineElements) == 4 {
-					hospital.PatientQueue, _ = strconv.Atoi(inLineElements[2])
-				}
-			}
-
-			if i == 4 {
-				hospital.LastUpdate = strings.Replace(text, "diupdate ", "", 1)
-			}
-
-			if i == 5 {
-				hospital.Note = text
-			}
-
-		})
-
-		sel.Find(".card-footer").Each(func(i int, footerSel *goquery.Selection) {
-			hotline := footerSel.Find("span").Text()
-			if hotline != "hotline tidak tersedia" {
-				hospital.Hotline = hotline
-			}
-		})
-
-		data = append(data, *hospital)
+		wg.Add(1)
+		log.Printf("XXXXXXXXXXXXXXXXXX i %d", i)
+		go s.scanHospitalSummaryFromCardSelector(&data, sel, &wg)
 	})
 
+	wg.Wait()
+
 	go func() {
+		log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS %d", 1)
+
 		err = redis.SetScrapedAvailableHospitals(url, data)
 		if err != nil {
+			log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS %d", 2)
+
 			log.Println("ERROR: Error set to redis")
 		}
+		log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS %d", 3)
 	}()
 
 	return data, nil
@@ -213,7 +236,19 @@ func (s *scraper) GetHospitalDetail(hospitalCode string) (model.HospitalDetail, 
 func (s *scraper) readPage(url string) (goQueryDoc *goquery.Document, err error) {
 	log.Printf("INFO: Read page %s", url)
 
-	response, err := http.Get(url)
+	t := &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   60 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 120 * time.Second,
+	}
+
+	client := &http.Client{
+		Transport: t,
+	}
+
+	response, err := client.Get(url)
 	if err != nil {
 		return goQueryDoc, err
 	}

@@ -5,6 +5,7 @@ import (
 	"api-bed-covid/utils"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -15,7 +16,6 @@ type Redis interface {
 	Get(key string) (string, error)
 	Set(key string, value string) error
 	SetEx(key string, value string) error
-
 	SetScrapedAvailableHospitals(hashURL, hashHTML string, hospitals []model.HospitalSummary) error
 	GetScrapedAvailableHospitals(key string) (string, error)
 	SetScrapedDetailHospital(hashURL, hashHTML string, hospital model.HospitalDetail) error
@@ -62,6 +62,7 @@ func (r redis) SetScrapedAvailableHospitals(url string, hospitals []model.Hospit
 	var key = buildKeyAvailableHospital(url)
 	var value = utils.JSONString(hospitals)
 	var expireTime = time.Duration(5 * 60 * time.Second) // TODO: set to env var
+	log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS SetScrapedAvailableHospitals %d", 2)
 
 	return r.SetEx(key, value, expireTime)
 }

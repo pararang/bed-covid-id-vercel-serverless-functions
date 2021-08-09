@@ -3,8 +3,8 @@ package commands
 import (
 	"api-bed-covid/service/scraper"
 	"api-bed-covid/utils"
-	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -22,6 +22,8 @@ func GetAvailablityInProvince() *cobra.Command {
 }
 
 func getAvailablityInProvince(id string) error {
+	defer utils.TimeTrack(time.Now())
+
 	scraperServices := scraper.New()
 
 	provinceID, err := strconv.Atoi(id)
@@ -29,12 +31,12 @@ func getAvailablityInProvince(id string) error {
 		return err
 	}
 
-	data, err := scraperServices.GetProvinceAvailability(provinceID)
+	_, err = scraperServices.GetProvinceAvailability(provinceID)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(utils.JSONIndentFormatter(data))
+	// fmt.Println(utils.JSONIndentFormatter(data))
 
 	return nil
 }
