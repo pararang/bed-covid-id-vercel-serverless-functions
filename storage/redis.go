@@ -15,7 +15,6 @@ type Redis interface {
 	Get(key string) (string, error)
 	Set(key string, value string) error
 	SetEx(key string, value string) error
-
 	SetScrapedAvailableHospitals(hashURL, hashHTML string, hospitals []model.HospitalSummary) error
 	GetScrapedAvailableHospitals(key string) (string, error)
 	SetScrapedDetailHospital(hashURL, hashHTML string, hospital model.HospitalDetail) error

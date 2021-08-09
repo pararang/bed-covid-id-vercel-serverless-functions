@@ -5,6 +5,7 @@ import (
 	"api-bed-covid/utils"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -22,6 +23,8 @@ func GetAvailablityInProvince() *cobra.Command {
 }
 
 func getAvailablityInProvince(id string) error {
+	defer utils.TimeTrack(time.Now())
+
 	scraperServices := scraper.New()
 
 	provinceID, err := strconv.Atoi(id)

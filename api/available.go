@@ -3,15 +3,18 @@ package handler
 import (
 	"api-bed-covid/service/rest"
 	"api-bed-covid/service/scraper"
+	"api-bed-covid/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 )
 
 // AvailableHandler ...
 func AvailableHandler(w http.ResponseWriter, r *http.Request) {
+	defer utils.TimeTrack(time.Now())
 	defer r.Body.Close()
 
 	provinceName := strings.ToUpper(r.URL.Query().Get("province"))
