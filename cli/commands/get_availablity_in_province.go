@@ -3,6 +3,7 @@ package commands
 import (
 	"api-bed-covid/service/scraper"
 	"api-bed-covid/utils"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -31,12 +32,12 @@ func getAvailablityInProvince(id string) error {
 		return err
 	}
 
-	_, err = scraperServices.GetProvinceAvailability(provinceID)
+	data, err := scraperServices.GetProvinceAvailability(provinceID)
 	if err != nil {
 		return err
 	}
 
-	// fmt.Println(utils.JSONIndentFormatter(data))
+	fmt.Println(utils.JSONIndentFormatter(data))
 
 	return nil
 }

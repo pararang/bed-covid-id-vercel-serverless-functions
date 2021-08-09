@@ -5,7 +5,6 @@ import (
 	"api-bed-covid/utils"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -62,7 +61,6 @@ func (r redis) SetScrapedAvailableHospitals(url string, hospitals []model.Hospit
 	var key = buildKeyAvailableHospital(url)
 	var value = utils.JSONString(hospitals)
 	var expireTime = time.Duration(5 * 60 * time.Second) // TODO: set to env var
-	log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS SetScrapedAvailableHospitals %d", 2)
 
 	return r.SetEx(key, value, expireTime)
 }

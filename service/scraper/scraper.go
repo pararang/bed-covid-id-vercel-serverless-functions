@@ -130,25 +130,61 @@ func (s *scraper) GetProvinceAvailability(provinceID int) ([]model.HospitalSumma
 
 	domHTML.Find(".cardRS").Each(func(i int, sel *goquery.Selection) {
 		wg.Add(1)
-		log.Printf("XXXXXXXXXXXXXXXXXX i %d", i)
 		go s.scanHospitalSummaryFromCardSelector(&data, sel, &wg)
 	})
 
 	wg.Wait()
 
 	go func() {
-		log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS %d", 1)
-
 		err = redis.SetScrapedAvailableHospitals(url, data)
 		if err != nil {
-			log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS %d", 2)
-
 			log.Println("ERROR: Error set to redis")
 		}
-		log.Printf("XXXXXXXXXXXXXXXXXX SET REDIS %d", 3)
 	}()
 
 	return data, nil
+}
+
+// scanRoomsDetailFromCardSelector get rooms detail from card selector
+func (s *scraper) scanRoomsDetailFromCardSelector(rooms *[]model.Room, card *goquery.Selection, wg *sync.WaitGroup) {
+	var err error
+	var room = new(model.Room)
+
+	defer wg.Done()
+
+	description := strings.Split(card.Find("p[class=mb-0]").Text(), "Update")
+	if len(description) == 2 {
+		room.Name = strings.TrimSpace(description[0])
+		room.LastUpdate = strings.TrimSpace(description[1])
+	}
+
+	card.Find(".text-center").Each(func(i int, cardData *goquery.Selection) {
+
+		text := strings.TrimSpace(cardData.Text())
+
+		if strings.HasPrefix(text, "Tempat Tidur") {
+			room.Capacity, err = strconv.Atoi(strings.TrimSpace(strings.Replace(text, "Tempat Tidur", "", 1)))
+			if err != nil {
+				log.Printf("INFO: error on convert room capacity, err: %s", err.Error())
+			}
+		}
+
+		if strings.HasPrefix(text, "Kosong") {
+			room.Empty, err = strconv.Atoi(strings.TrimSpace(strings.Replace(text, "Kosong", "", 1)))
+			if err != nil {
+				log.Printf("INFO: error on convert room empty bed, err: %s", err.Error())
+			}
+		}
+
+		if strings.HasPrefix(text, "Antrian") {
+			room.Empty, err = strconv.Atoi(strings.TrimSpace(strings.Replace(text, "Antrian", "", 1)))
+			if err != nil {
+				log.Printf("INFO: error on convert room queue, err: %s", err.Error())
+			}
+		}
+	})
+
+	*rooms = append(*rooms, *room)
 }
 
 func (s *scraper) GetHospitalDetail(hospitalCode string) (model.HospitalDetail, error) {
@@ -183,43 +219,14 @@ func (s *scraper) GetHospitalDetail(hospitalCode string) (model.HospitalDetail, 
 	data.Name = strings.TrimSpace(getHospitalName(titleSelector.Text(), data.Address, data.Hotline))
 
 	var rooms = make([]model.Room, 0)
+	var wg sync.WaitGroup
+
 	domHTML.Find(".card").Each(func(i int, card *goquery.Selection) {
-		var room = new(model.Room)
-
-		description := strings.Split(card.Find("p[class=mb-0]").Text(), "Update")
-		if len(description) == 2 {
-			room.Name = strings.TrimSpace(description[0])
-			room.LastUpdate = strings.TrimSpace(description[1])
-		}
-
-		card.Find(".text-center").Each(func(i int, cardData *goquery.Selection) {
-
-			text := strings.TrimSpace(cardData.Text())
-
-			if strings.HasPrefix(text, "Tempat Tidur") {
-				room.Capacity, err = strconv.Atoi(strings.TrimSpace(strings.Replace(text, "Tempat Tidur", "", 1)))
-				if err != nil {
-					log.Printf("INFO: error on convert room capacity, err: %s", err.Error())
-				}
-			}
-
-			if strings.HasPrefix(text, "Kosong") {
-				room.Empty, err = strconv.Atoi(strings.TrimSpace(strings.Replace(text, "Kosong", "", 1)))
-				if err != nil {
-					log.Printf("INFO: error on convert room empty bed, err: %s", err.Error())
-				}
-			}
-
-			if strings.HasPrefix(text, "Antrian") {
-				room.Empty, err = strconv.Atoi(strings.TrimSpace(strings.Replace(text, "Antrian", "", 1)))
-				if err != nil {
-					log.Printf("INFO: error on convert room queue, err: %s", err.Error())
-				}
-			}
-		})
-
-		rooms = append(rooms, *room)
+		wg.Add(1)
+		go s.scanRoomsDetailFromCardSelector(&rooms, card, &wg)
 	})
+
+	wg.Wait()
 
 	data.Room = rooms
 

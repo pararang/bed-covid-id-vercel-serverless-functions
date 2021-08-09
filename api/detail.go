@@ -3,14 +3,17 @@ package handler
 import (
 	"api-bed-covid/service/rest"
 	"api-bed-covid/service/scraper"
+	"api-bed-covid/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // DetailHospitalHandler ...
 func DetailHospitalHandler(w http.ResponseWriter, r *http.Request) {
+	defer utils.TimeTrack(time.Now())
 	defer r.Body.Close()
 
 	hospitalCode := strings.ToUpper(r.URL.Query().Get("code"))
