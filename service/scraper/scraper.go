@@ -22,9 +22,6 @@ import (
 type Scraper interface {
 	GetProvinceAvailability(provinceID int) ([]model.HospitalSummary, error)
 	GetHospitalDetail(hospitalCode string) (model.HospitalDetail, error)
-	readPage(url string) (*goquery.Document, error)
-	getHospitalCodeFromDetailURL(detailURL string) (string, error)
-	getHospitalSummary(selector *goquery.Selection, result *[]model.HospitalSummary) error
 }
 
 type scraper struct {
