@@ -8,6 +8,11 @@ import (
 	"sort"
 )
 
+const (
+	statusOK    = "OK"
+	statusError = "ERROR"
+)
+
 // Option ...
 type Option struct {
 	ID    int    `json:"id"`
@@ -97,7 +102,7 @@ func ResponseSuccessWriter(w http.ResponseWriter, message string, data interface
 	}
 
 	var response = Response{
-		Status:  "OK",
+		Status:  statusOK,
 		Message: message,
 		Data:    data,
 	}
@@ -112,7 +117,7 @@ func ResponseFailWriter(w http.ResponseWriter, message string) {
 	log.Printf("ERROR: %s", message)
 
 	var response = Response{
-		Status:  "ERROR",
+		Status:  statusError,
 		Message: message,
 	}
 
