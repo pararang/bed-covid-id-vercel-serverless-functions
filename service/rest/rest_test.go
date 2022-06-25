@@ -1,6 +1,9 @@
 package rest
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http/httptest"
 	"reflect"
 	"testing"
 
@@ -81,4 +84,73 @@ func TestMapStringInt_GetListForOptions(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResponseSuccessWriter(t *testing.T) {
+	var message = "success"
+
+	t.Run("data not null", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		var data = map[string]interface{}{"key": "value", "number": float64(1)}
+		var obj Response
+
+		ResponseSuccessWriter(w, message, data)
+
+		response := w.Result()
+
+		defer response.Body.Close()
+
+		assert.Equal(t, []string{"application/json"}, response.Header["Content-Type"])
+
+		bytesResponse, _ := ioutil.ReadAll(response.Body)
+
+		json.Unmarshal(bytesResponse, &obj)
+
+		assert.Equal(t, statusOK, obj.Status)
+		assert.Equal(t, message, obj.Message)
+		assert.Equal(t, data, obj.Data.(map[string]interface{}))
+	})
+
+	t.Run("data null", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		var obj Response
+
+		ResponseSuccessWriter(w, message, nil)
+
+		response := w.Result()
+
+		defer response.Body.Close()
+
+		assert.Equal(t, []string{"application/json"}, response.Header["Content-Type"])
+
+		bytesResponse, _ := ioutil.ReadAll(response.Body)
+
+		json.Unmarshal(bytesResponse, &obj)
+
+		assert.Equal(t, statusOK, obj.Status)
+		assert.Equal(t, message, obj.Message)
+		assert.Equal(t, nil, obj.Data)
+	})
+}
+
+func TestResponseFailWriter(t *testing.T) {
+	var w = httptest.NewRecorder()
+	var message = "ooops!"
+	var obj Response
+
+	ResponseFailWriter(w, message)
+
+	response := w.Result()
+
+	defer response.Body.Close()
+
+	assert.Equal(t, []string{"application/json"}, response.Header["Content-Type"])
+
+	bytesResponse, _ := ioutil.ReadAll(response.Body)
+
+	json.Unmarshal(bytesResponse, &obj)
+
+	assert.Equal(t, statusError, obj.Status)
+	assert.Equal(t, message, obj.Message)
+	assert.Equal(t, nil, obj.Data)
 }
