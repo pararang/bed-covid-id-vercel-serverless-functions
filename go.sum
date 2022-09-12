@@ -136,8 +136,8 @@ github.com/nats-io/nkeys v0.1.0/go.mod h1:xpnFELMwJABBLVhffcfd1MZx6VsNRFpEugbxzi
 github.com/nats-io/nuid v1.0.1/go.mod h1:19wcPz3Ph3q0Jbyiqsd0kePYG7A95tJPxeL+1OSON2c=
 github.com/nedpals/postgrest-go v0.1.2 h1:OaT4u6ZAfFSDIj1jrLZEjqY3fgLrZw9j7Lgc1zIFkTU=
 github.com/nedpals/postgrest-go v0.1.2/go.mod h1:RGinB2OXsnGLcZMu5avS0U+b9npyZmk+ecK74UDi/xY=
-github.com/nedpals/supabase-go v0.1.8 h1:31vgFpCbuwRmNYPL58auoDg2yDRltT2uEVTMTsUdecw=
-github.com/nedpals/supabase-go v0.1.8/go.mod h1:RSjFlnvLQ3nc9F4WhyartDlvT6smRY0tnJTLxum31d8=
+github.com/nedpals/supabase-go v0.2.0 h1:ZuciOzOwfyKmsd/D/XAP4+pTx/2kpAhLbo8OS3WZQo8=
+github.com/nedpals/supabase-go v0.2.0/go.mod h1:RSjFlnvLQ3nc9F4WhyartDlvT6smRY0tnJTLxum31d8=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
