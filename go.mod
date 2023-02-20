@@ -3,7 +3,7 @@ module api-bed-covid
 go 1.16
 
 require (
-	github.com/PuerkitoBio/goquery v1.8.0
+	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/getsentry/sentry-go v0.13.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/go-cmp v0.5.6 // indirect
